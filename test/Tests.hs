@@ -52,26 +52,26 @@ gameSpecs :: Spec
 gameSpecs = describe "Game" $ do
   describe "initGame" $ do
     it "should create 4 players" $ do
-      pendingWith "Implement the initGame function"
-      --let gs = initGame 4
-      --length (players gs) `shouldBe` 4
+      --pendingWith "Implement the initGame function"
+      let gs = initGame 4
+      length (players gs) `shouldBe` 4
     it "should initialize the deck with 108 cards" $ do
-      pendingWith "Implement the initGame function"
-      --let gs = initGame 4
-      --length (deck gs) `shouldBe` 108
+      --pendingWith "Implement the initGame function"
+      let gs = initGame 4
+      length (deck gs) `shouldBe` 108
     it "should initialize discard pile to empty" $ do
-      pendingWith "Implement the initGame function"
-      --let gs = initGame 4
-      --length (d_stack gs) `shouldBe` 0
+      --pendingWith "Implement the initGame function"
+      let gs = initGame 4
+      length (d_stack gs) `shouldBe` 0
   describe "setupGame" $ do
     it "should shuffle the deck" $ do
       pendingWith "Implement the setupGame function"
-      -- let gs = initGame 4
-      -- gs' <- setupGame gs
+       --let gs = initGame 4
+       --gs' <- setupGame gs
     it "should distribute cards to players" $ do
       pendingWith "Implement the setupGame function"
-      -- let gs = initGame 4
-      -- gs' <- setupGame gs
+       --let gs = initGame 4
+       --gs' <- setupGame gs
 
 -- Test data fixtures
 --
