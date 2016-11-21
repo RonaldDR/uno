@@ -4,6 +4,9 @@ import Common
 import Shuffler
 import System.Console.ANSI (Color(Black, Red, Green, Yellow, Blue, Magenta, Cyan, White))
 
+initialCardCount :: Int
+initialCardCount = 7
+
 initGame :: Int -> State
 
 -- TODO: Implement a method to initialize a new game given n players
@@ -12,8 +15,8 @@ initGame n = State { players = initPlayers n,
                      d_stack = [ ] }
 ------------------------------------------------------------------------
 initPlayers :: Int ->[Player]
-initPlayers n
-        | (n > 0) = [HPlayer {name = "Player" ++ show n}] ++ initPlayers (n-1)
+initPlayers n  
+        | (n > 0) = [HPlayer {name = "Player" ++ show n, hand = [ ]}] ++ initPlayers (n-1)
         | otherwise = [ ]
 -- TODO: Implement a method to setup the game
 setupGame :: State -> IO State
@@ -35,9 +38,9 @@ dealCards state@State{
 dealp :: Deck -> [Player] -> [Player]
 dealp [] _ = []
 dealp _ [] = []
-dealp (c1:c2:c3:c4:c5:cs) (p:ps) = p{hand=[c1,c2,c3,c4,c5]} : dealp cs ps
+dealp (c1:c2:c3:c4:c5:c6:c7:cs) (p:ps) = p{hand=[c1,c2,c3,c4,c5,c6,c7]} : dealp cs ps
 
 dealc :: Deck -> [Player] -> Deck
 dealc [ ] _ = [ ]
 dealc deck [ ] = deck
-dealc deck (p:ps) = dealc (drop 5 deck) ps
+dealc deck (p:ps) = dealc (drop 7 deck) ps
