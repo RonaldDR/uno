@@ -21,7 +21,7 @@ initGame n = State { players = initPlayers n,
 
 initPlayers :: Int ->[Player]
 initPlayers n  
-        | (n > 0) = [HPlayer {name = "Player" ++ show n, hand = [ ]}] ++ initPlayers (n-1)
+        | (n > 0) = [HPlayer {name = "Player " ++ show n, hand = [ ]}] ++ initPlayers (n-1)
         | otherwise = [ ]
 
 initGameWithPlayers :: [ Player ] -> State
@@ -31,30 +31,8 @@ initGameWithPlayers pa = gs' { players = clearHands pa } where
 -- TODO: Implement a method to setup the game
 setupGame :: State -> IO State
 setupGame gs = do
-	curr <- shuffleDeck gs
-	return (dealCards(curr))
-
--- Deal Cards
-dealCards :: State -> State
-dealCards state@State{
-				players = plyrs,
-				deck = dck,
-				d_stack = dstck
-				} = State{
-						players = dealp dck plyrs,
-						deck = dealc dck plyrs,
-						d_stack = dstck
-					}
-
-dealp :: Deck -> [Player] -> [Player]
-dealp [] _ = []
-dealp _ [] = []
-dealp (c1:c2:c3:c4:c5:c6:c7:cs) (p:ps) = p{hand=[c1,c2,c3,c4,c5,c6,c7]} : dealp cs ps
-
-dealc :: Deck -> [Player] -> Deck
-dealc [ ] _ = [ ]
-dealc deck [ ] = deck
-dealc deck (p:ps) = dealc (drop 7 deck) ps
+  curr <- shuffleDeck gs
+  return (dealCards(curr))
 
 startGame :: State -> IO State
 startGame gs = pickNextAndPlay gs
@@ -94,11 +72,18 @@ deckIsEmpty gs = null (deck gs)
 
 -- TODO: Implement this function
 playerHasWon :: State -> Bool
-playerHasWon gs = False
+playerHasWon gs = checkOut $ players gs
+
 
 -- TODO: Implement this function
 playerIsOut :: State -> Bool
-playerIsOut gs = False
+playerIsOut gs = checkOut $ players gs
+
+checkOut :: [Player] -> Bool
+checkOut [] = False
+checkOut (p:ps)
+     | hand p == [] = True
+     | otherwise = checkOut ps 
 
 reverseAndPlay :: State -> IO State
 reverseAndPlay gs = do
@@ -171,7 +156,12 @@ takeFromHandWithAction card next_action gs = do
 
 -- TODO: Implement this function
 takeFromHand :: Card -> State -> IO State
-takeFromHand card gs = return gs
+takeFromHand card gs = do
+  let d_stack' = (d_stack gs) ++ [card]
+  cur_player' <- removeFromHand card (cur_player gs)
+  return (gs {d_stack = d_stack',cur_player = cur_player'})
+
+
 
 takeFromDeck :: State -> IO (Action, State)
 takeFromDeck gs = do
@@ -180,11 +170,17 @@ takeFromDeck gs = do
 
 -- TODO: Implement this function
 reversePlayers :: State -> IO State
-reversePlayers gs = return gs
+reversePlayers gs = do
+  let gs' = reverse (players gs)
+  return (gs { players = gs' })
 
 -- TODO: Implement this function
 drawNCards :: Int -> State -> Player -> IO State
-drawNCards n gs player = return gs
+drawNCards n gs player = do
+  player' <- updateHand player (hand player ++ take n (deck gs))
+  gs' <- updateDeck gs $ drop n $ deck gs
+  updatePlayer gs' player player'
+
 
 updatePlayer :: State -> Player -> Player -> IO State
 updatePlayer gs p new_p = do
@@ -221,7 +217,10 @@ updateDeck gs deck' = return (gs { deck = deck' })
 
 -- TODO: Implement this function
 reloadDeck :: State -> IO State
-reloadDeck gs = return gs
+reloadDeck gs = do
+  let d_stack' = drop ((length $ d_stack gs) - 1) (d_stack gs)
+  let deck' = take ((length $ d_stack gs) - 1) (d_stack gs)
+  return (gs {deck = deck',d_stack = d_stack'})
 
 topDCard :: State -> Card
 topDCard gs = last (d_stack gs)
@@ -234,7 +233,14 @@ updateCurPlayer gs player = return (gs { cur_player = player })
 
 -- TODO: Implement this function
 getNextPlayer :: State -> Player
-getNextPlayer gs = head $ players gs
+getNextPlayer gs = checkCurPlayer (players gs) (cur_player gs)
+
+checkCurPlayer :: [Player] -> Player -> Player
+checkCurPlayer ps (NoPlayer _) = head $ ps
+checkCurPlayer (p:ps) crnt 
+      | crnt == ps !! (length ps - 1) = p 
+      | p == crnt = head ps
+      | otherwise = checkCurPlayer ps crnt
 
 pickNextPlayer :: State -> IO State
 pickNextPlayer gs = updateCurPlayer gs $ getNextPlayer gs
@@ -248,3 +254,9 @@ useSimpleStrategy gs dcard hand = (TakeFromDeck, noCard)
 
 
 -- ADD extra codes after this line, so it's easy to rebase or merge code changes in Git --
+
+removeFromHand :: Card -> Player -> IO Player
+removeFromHand card player = return ( player{hand = deleteFromList card (hand player)} )
+
+deleteFromList :: (Eq a) => a -> [a] -> [a]
+deleteFromList x xs = delete x xs
