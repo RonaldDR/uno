@@ -250,7 +250,13 @@ playCurrentPlayer gs = useSimpleStrategy gs (topDCard gs) (curHand gs)
 
 -- TODO: Implement this function
 useSimpleStrategy :: State -> Card -> Hand -> (Action, Card)
-useSimpleStrategy gs dcard hand = (TakeFromDeck, noCard)
+useSimpleStrategy gs dcard hand
+  | countCardsByColor (color dcard) hand > 0 = (UseCard, fromJust $ getCardWithColor (color dcard) hand)
+  | valueInHand (value dcard) hand = (UseCard, fromJust $ getCardWithValue (value dcard) hand)
+  | wildcardInHand hand = (UseCard, fromJust $ getWildcard hand)
+  | otherwise = (TakeFromDeck, noCard)
+
+
 
 
 -- ADD extra codes after this line, so it's easy to rebase or merge code changes in Git --
